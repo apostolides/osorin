@@ -21,6 +21,7 @@ function qplayer(messageObject,message){
         try{
           let link = await link_from_query(query);
           queue.push(link);
+	  messageObject.channel.send(link);
           if(dispatcher == null){
             play(connection);
           }
