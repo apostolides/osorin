@@ -20,8 +20,10 @@ function qplayer(messageObject,message){
       voiceChannel.join().then(async(connection)=>{
         try{
           let link = await link_from_query(query);
-          queue.push(link);
-	  messageObject.channel.send(link);
+          if(link){
+            queue.push(link);
+            messageObject.channel.send(link);
+          }
           if(dispatcher == null){
             play(connection);
           }
@@ -35,7 +37,7 @@ function qplayer(messageObject,message){
 }
 
 function play(connection){
-  let stream = ytdl(queue[0],{filter:"audioonly",fmt: "mp3"});
+  let stream = ytdl(queue[0],{fmt: "mp3"});
   queue.shift();
   dispatcher = connection.play(stream)
   .on("finish",()=>{
@@ -71,10 +73,29 @@ async function link_from_query(query){
   if(query.includes("youtube.") || query.includes("youtu.be")){
     return query;
   }
-  let search_query = query.replace("/ /g","+");
-  let response = await axios.get(`https://www.googleapis.com/youtube/v3/search?q=${search_query}&key=${YOUTUBE_API_KEY}`);
-  let link = `https://www.youtube.com/watch?v=${response.data.items[0].id.videoId}`;
-  return link;
+  try{
+    let search_query = query.replace("/ /g","+");
+    let response = await axios.get(`https://www.googleapis.com/youtube/v3/search?q=${search_query}&key=${YOUTUBE_API_KEY}`);
+    let link = `https://www.youtube.com/watch?v=${response.data.items[0].id.videoId}`;
+    return link;
+  }
+  catch{
+    return undefined;
+  }
 }
 
-module.exports = {qplayer:qplayer,list_queue:list_queue,skip:skip,empty:empty}
+function leave(messageObject){
+  try{
+    let voiceChannel = messageObject.member.voice.channel;
+    voiceChannel.leave();
+    empty();
+    if(dispatcher != null){
+      dispatcher.end();
+    }
+    dispatcher = null;
+  }
+  catch{
+  }
+}
+
+module.exports = {qplayer:qplayer,list_queue:list_queue,skip:skip,empty:empty,leave:leave}

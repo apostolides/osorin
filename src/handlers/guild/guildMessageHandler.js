@@ -15,8 +15,11 @@ module.exports = {
         case "empty":
           player.empty();
           break;
+        case "leave":
+          player.leave(messageObject);
+          break;
         default:
-          messageObject.channel.send("sorin play,skip,q,empty <search_query>");
+          messageObject.channel.send("sorin play, skip, q, empty, leave <search_query>");
           break;
     }
   }
